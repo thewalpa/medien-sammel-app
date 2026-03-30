@@ -1,2 +1,2 @@
 # medien-sammel-app
-App to collect
+App to visually map out how you connect different pieces of media.
