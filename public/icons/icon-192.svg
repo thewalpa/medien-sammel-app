@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d2636"/>
+      <stop offset="100%" style="stop-color:#1a1520"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="38" fill="url(#bg)"/>
+  <circle cx="64" cy="72" r="14" fill="#e07a5f" opacity="0.9"/>
+  <circle cx="128" cy="56" r="12" fill="#9b72cf" opacity="0.9"/>
+  <circle cx="108" cy="120" r="16" fill="#56b6a2" opacity="0.9"/>
+  <circle cx="56" cy="132" r="10" fill="#d4a24e" opacity="0.9"/>
+  <line x1="64" y1="72" x2="128" y2="56" stroke="#f0e6d6" stroke-width="1.5" opacity="0.3"/>
+  <line x1="64" y1="72" x2="108" y2="120" stroke="#f0e6d6" stroke-width="1.5" opacity="0.3"/>
+  <line x1="128" y1="56" x2="108" y2="120" stroke="#f0e6d6" stroke-width="1.5" opacity="0.3"/>
+  <line x1="56" y1="132" x2="108" y2="120" stroke="#f0e6d6" stroke-width="1.5" opacity="0.3"/>
+  <text x="96" y="176" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#f0e6d6" opacity="0.7">MS</text>
+</svg>
