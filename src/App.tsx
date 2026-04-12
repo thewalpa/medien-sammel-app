@@ -5,6 +5,7 @@ import Toolbar from './components/Toolbar';
 import MediaSearchModal from './components/MediaSearchModal';
 import NodeDetailPanel from './components/NodeDetailPanel';
 import EdgeDetailModal from './components/EdgeDetailModal';
+import MediaSidebar from './components/MediaSidebar';
 import ThemeCustomizer from './components/ThemeCustomizer';
 import OfflineBanner from './components/OfflineBanner';
 import InstallBanner from './components/InstallBanner';
@@ -39,6 +40,7 @@ export default function App() {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 
   // Selected node object
@@ -80,6 +82,24 @@ export default function App() {
       });
     },
     [addNode, state.viewport]
+  );
+
+  // Navigation Logic
+  const handleFocusNode = useCallback(
+    (id: string) => {
+      const node = state.nodes.find((n) => n.id === id);
+      if (node) {
+        const zoom = state.viewport.zoom;
+        setViewport({
+          x: window.innerWidth / 2 - (node.position.x + 60) * zoom,
+          y: window.innerHeight / 2 - (node.position.y + 70) * zoom,
+          zoom,
+        });
+        selectNode(id);
+        setSidebarOpen(false);
+      }
+    },
+    [state.nodes, state.viewport.zoom, setViewport, selectNode]
   );
 
   // Handle connecting
@@ -140,6 +160,29 @@ export default function App() {
 
   return (
     <div className="app-root">
+      {!sidebarOpen && (
+        <button
+          className="sidebar-toggle-btn glass"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          title="Media Library"
+          id="btn-sidebar-floating"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+      )}
+
       <Canvas
         nodes={state.nodes}
         edges={state.edges}
@@ -155,6 +198,14 @@ export default function App() {
         onFinishConnect={handleFinishConnect}
         onSelectEdge={handleSelectEdge}
         selectedEdgeId={selectedEdgeId}
+      />
+
+      <MediaSidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        nodes={state.nodes}
+        selectedNodeId={state.selectedNodeId}
+        onFocusNode={handleFocusNode}
       />
 
       {state.mode === 'connect' && (
