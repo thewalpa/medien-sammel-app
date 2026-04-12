@@ -1,14 +1,14 @@
 const BASE = 'https://api.themoviedb.org/3'
 const IMG_BASE = 'https://image.tmdb.org/t/p/w185'
 
-function getApiKey() {
+function getApiKey(): string {
   try { return localStorage.getItem('tmdb_api_key') || '' } catch { return '' }
 }
-export function hasTmdbKey() { return getApiKey().length > 0 }
-export function setTmdbKey(key) { localStorage.setItem('tmdb_api_key', key.trim()) }
-export function getTmdbKey() { return getApiKey() }
+export function hasTmdbKey(): boolean { return getApiKey().length > 0 }
+export function setTmdbKey(key: string): void { localStorage.setItem('tmdb_api_key', key.trim()) }
+export function getTmdbKey(): string { return getApiKey() }
 
-export async function searchMovies(query, limit = 12) {
+export async function searchMovies(query: string, limit = 12): Promise<any[]> {
   if (!query || query.trim().length < 2) return []
   const apiKey = getApiKey()
   if (!apiKey) return []
@@ -20,9 +20,9 @@ export async function searchMovies(query, limit = 12) {
   }
   const data = await res.json()
   return (data.results || [])
-    .filter((item) => item.media_type === 'movie' || item.media_type === 'tv')
+    .filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
     .slice(0, limit)
-    .map((item) => {
+    .map((item: any) => {
       const isMovie = item.media_type === 'movie'
       const title = isMovie ? item.title : item.name
       const date = isMovie ? item.release_date : item.first_air_date

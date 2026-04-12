@@ -1,6 +1,6 @@
 const BASE = 'https://musicbrainz.org/ws/2'
 
-export async function searchMusic(query, limit = 12) {
+export async function searchMusic(query: string, limit = 12): Promise<any[]> {
   if (!query || query.trim().length < 2) return []
   const url = BASE + '/release?query=' + encodeURIComponent(query) + '&fmt=json&limit=' + limit
   const res = await fetch(url, {
@@ -11,8 +11,8 @@ export async function searchMusic(query, limit = 12) {
   })
   if (!res.ok) throw new Error('MusicBrainz search failed: ' + res.status)
   const data = await res.json()
-  return (data.releases || []).map((release) => {
-    const artists = release['artist-credit']?.map((c) => c.name || c.artist?.name).filter(Boolean).join(', ')
+  return (data.releases || []).map((release: any) => {
+    const artists = release['artist-credit']?.map((c: any) => c.name || c.artist?.name).filter(Boolean).join(', ')
     return {
       title: release.title || 'Untitled',
       subtitle: [artists, release.date?.slice(0, 4)].filter(Boolean).join(' · '),

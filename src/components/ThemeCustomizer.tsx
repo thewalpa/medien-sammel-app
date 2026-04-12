@@ -1,46 +1,73 @@
-import React, { useState } from 'react'
-import { THEMES, ANIMATED_BACKGROUNDS } from '../data/themes'
-import { getTmdbKey, setTmdbKey } from '../services/tmdb'
-import { exportCanvasAsJSON, importCanvasFromJSON } from '../services/storage'
+import React, { useState } from 'react';
+import { THEMES, ANIMATED_BACKGROUNDS } from '../data/themes';
+import { getTmdbKey, setTmdbKey } from '../services/tmdb';
+import { exportCanvasAsJSON, importCanvasFromJSON } from '../services/storage';
 
-export default function ThemeCustomizer({ open, onClose, themeId, bgId, customBgUrl, onChangeTheme, onChangeBg, onChangeCustomBg }) {
-  const [tmdbKey, setTmdbKeyLocal] = useState(getTmdbKey())
-  const [importMsg, setImportMsg] = useState('')
+interface ThemeCustomizerProps {
+  open: boolean;
+  onClose: () => void;
+  themeId: string;
+  bgId: string;
+  customBgUrl: string;
+  onChangeTheme: (id: string) => void;
+  onChangeBg: (id: string) => void;
+  onChangeCustomBg: (url: string) => void;
+}
 
-  if (!open) return null
+export default function ThemeCustomizer({
+  open,
+  onClose,
+  themeId,
+  bgId,
+  customBgUrl,
+  onChangeTheme,
+  onChangeBg,
+  onChangeCustomBg,
+}: ThemeCustomizerProps) {
+  const [tmdbKey, setTmdbKeyLocal] = useState(getTmdbKey());
+  const [importMsg, setImportMsg] = useState('');
+
+  if (!open) return null;
 
   const handleSaveTmdb = () => {
-    setTmdbKey(tmdbKey)
-  }
+    setTmdbKey(tmdbKey);
+  };
 
   const handleExport = () => {
-    exportCanvasAsJSON().catch((e) => console.error('Export failed:', e))
-  }
+    exportCanvasAsJSON().catch((e) => console.error('Export failed:', e));
+  };
 
   const handleImport = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
-    input.onchange = async (e) => {
-      const file = e.target.files[0]
-      if (!file) return
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) return;
       try {
-        await importCanvasFromJSON(file)
-        setImportMsg('Imported! Refresh the page to see changes.')
-      } catch (err) {
-        setImportMsg('Import failed: ' + err.message)
+        await importCanvasFromJSON(file);
+        setImportMsg('Imported! Refresh the page to see changes.');
+      } catch (err: any) {
+        setImportMsg('Import failed: ' + err.message);
       }
-    }
-    input.click()
-  }
+    };
+    input.click();
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-sheet" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '95vh' }}>
+      <div
+        className="modal-sheet"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxHeight: '95vh' }}
+      >
         <div className="modal-handle" />
         <div className="modal-header">
           <span className="modal-title">⚙ Settings</span>
-          <button className="modal-close" onClick={onClose} id="settings-close">✕</button>
+          <button className="modal-close" onClick={onClose} id="settings-close">
+            ✕
+          </button>
         </div>
 
         <div className="modal-body">
@@ -56,7 +83,11 @@ export default function ThemeCustomizer({ open, onClose, themeId, bgId, customBg
                 >
                   <div className="theme-preset-swatch" style={{ background: theme.swatch }} />
                   <div className="theme-preset-name">{theme.name}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{theme.description}</div>
+                  <div
+                    style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}
+                  >
+                    {theme.description}
+                  </div>
                 </div>
               ))}
             </div>
@@ -72,35 +103,42 @@ export default function ThemeCustomizer({ open, onClose, themeId, bgId, customBg
                   className={'bg-option' + (bgId === bg.id ? ' active' : '')}
                   onClick={() => onChangeBg(bg.id)}
                   style={{
-                    background: bg.id === 'none'
-                      ? 'var(--bg-primary)'
-                      : 'var(--bg-primary)',
+                    background: bg.id === 'none' ? 'var(--bg-primary)' : 'var(--bg-primary)',
                     overflow: 'hidden',
                     position: 'relative',
                   }}
                 >
                   {/* Mini preview of the animated background */}
                   {bg.preview && bg.id !== 'none' && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      backgroundImage: bg.preview,
-                      animation: bg.id === 'aurora' ? 'auroraShift 6s ease-in-out infinite alternate' :
-                                 bg.id === 'fireflies' ? 'fireflyDrift 4s ease-in-out infinite alternate' :
-                                 bg.id === 'waves' ? 'waveDrift 4s ease-in-out infinite' : 'none',
-                      backgroundSize: bg.id === 'waves' ? '200% 200%' : undefined,
-                    }} />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundImage: bg.preview,
+                        animation:
+                          bg.id === 'aurora'
+                            ? 'auroraShift 6s ease-in-out infinite alternate'
+                            : bg.id === 'fireflies'
+                            ? 'fireflyDrift 4s ease-in-out infinite alternate'
+                            : bg.id === 'waves'
+                            ? 'waveDrift 4s ease-in-out infinite'
+                            : 'none',
+                        backgroundSize: bg.id === 'waves' ? '200% 200%' : undefined,
+                      }}
+                    />
                   )}
                   {bg.id === 'none' && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '20px',
-                      opacity: 0.4,
-                    }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '20px',
+                        opacity: 0.4,
+                      }}
+                    >
                       ∅
                     </div>
                   )}
@@ -126,7 +164,8 @@ export default function ThemeCustomizer({ open, onClose, themeId, bgId, customBg
           <div className="theme-section">
             <div className="theme-section-title">TMDB API Key (Movies & Series)</div>
             <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
-              Get a free key at <span style={{ color: 'var(--accent)' }}>themoviedb.org/settings/api</span>
+              Get a free key at{' '}
+              <span style={{ color: 'var(--accent)' }}>themoviedb.org/settings/api</span>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
@@ -137,7 +176,9 @@ export default function ThemeCustomizer({ open, onClose, themeId, bgId, customBg
                 onChange={(e) => setTmdbKeyLocal(e.target.value)}
                 id="tmdb-key-input"
               />
-              <button className="btn btn-primary" onClick={handleSaveTmdb} id="btn-save-tmdb">Save</button>
+              <button className="btn btn-primary" onClick={handleSaveTmdb} id="btn-save-tmdb">
+                Save
+              </button>
             </div>
           </div>
 
@@ -153,15 +194,24 @@ export default function ThemeCustomizer({ open, onClose, themeId, bgId, customBg
               </button>
             </div>
             {importMsg && (
-              <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--accent)' }}>{importMsg}</div>
+              <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--accent)' }}>
+                {importMsg}
+              </div>
             )}
           </div>
 
-          <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--text-tertiary)', fontSize: '11px' }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '16px 0',
+              color: 'var(--text-tertiary)',
+              fontSize: '11px',
+            }}
+          >
             Medien Sammel App v0.1.0
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

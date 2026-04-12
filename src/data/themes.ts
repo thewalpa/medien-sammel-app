@@ -11,9 +11,17 @@ const DARK_SHARED = {
   '--shadow-node': '0 4px 16px rgba(0,0,0,0.45)',
   '--shadow-glow': '0 0 20px rgba(232,151,107,0.25)',
   '--text-inverse': '#1a1520',
+};
+
+export interface Theme {
+  id: string;
+  name: string;
+  description: string;
+  colors: Record<string, string>;
+  swatch: string;
 }
 
-export const THEMES = [
+export const THEMES: Theme[] = [
   {
     id: 'cozy-dark',
     name: 'Cozy Dark',
@@ -114,9 +122,16 @@ export const THEMES = [
     },
     swatch: 'linear-gradient(135deg, #faf6f0, #ebe4d8, #c67a44)',
   },
-]
+];
 
-export const ANIMATED_BACKGROUNDS = [
+export interface AnimatedBackground {
+  id: string;
+  name: string;
+  className: string;
+  preview: string;
+}
+
+export const ANIMATED_BACKGROUNDS: AnimatedBackground[] = [
   {
     id: 'none', name: 'None', className: '',
     preview: 'transparent',
@@ -133,9 +148,9 @@ export const ANIMATED_BACKGROUNDS = [
     id: 'waves', name: 'Waves', className: 'animated-bg-waves',
     preview: 'linear-gradient(135deg, rgba(232,151,107,0.2) 25%, transparent 25%), linear-gradient(225deg, rgba(155,114,207,0.15) 25%, transparent 25%), linear-gradient(315deg, rgba(86,182,162,0.12) 25%, transparent 25%)',
   },
-]
+];
 
-export const MEDIA_TYPE_EMOJI = { movie: '🎬', music: '🎵', art: '🎨', book: '📚' }
-export const MEDIA_TYPE_LABELS = { movie: 'Movies & Series', music: 'Music', art: 'Art', book: 'Books & Audio' }
-export const DEFAULT_THEME_ID = 'cozy-dark'
-export const DEFAULT_BG_ID = 'aurora'
+export const MEDIA_TYPE_EMOJI: Record<string, string> = { movie: '🎬', music: '🎵', art: '🎨', book: '📚' };
+export const MEDIA_TYPE_LABELS: Record<string, string> = { movie: 'Movies & Series', music: 'Music', art: 'Art', book: 'Books & Audio' };
+export const DEFAULT_THEME_ID = 'cozy-dark';
+export const DEFAULT_BG_ID = 'aurora';
