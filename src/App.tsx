@@ -4,6 +4,7 @@ import Canvas from './canvas/Canvas';
 import Toolbar from './components/Toolbar';
 import MediaSearchModal from './components/MediaSearchModal';
 import NodeDetailPanel from './components/NodeDetailPanel';
+import EdgeDetailModal from './components/EdgeDetailModal';
 import ThemeCustomizer from './components/ThemeCustomizer';
 import OfflineBanner from './components/OfflineBanner';
 import InstallBanner from './components/InstallBanner';
@@ -45,6 +46,19 @@ export default function App() {
     if (!state.selectedNodeId) return null;
     return state.nodes.find((n) => n.id === state.selectedNodeId) || null;
   }, [state.selectedNodeId, state.nodes]);
+
+  // Selected edge object and its nodes
+  const selectedEdge = useMemo(() => {
+    if (!selectedEdgeId) return null;
+    return state.edges.find((e) => e.id === selectedEdgeId) || null;
+  }, [selectedEdgeId, state.edges]);
+
+  const edgeNodes = useMemo(() => {
+    if (!selectedEdge) return { source: null, target: null };
+    const source = state.nodes.find((n) => n.id === selectedEdge.source) || null;
+    const target = state.nodes.find((n) => n.id === selectedEdge.target) || null;
+    return { source, target };
+  }, [selectedEdge, state.nodes]);
 
   // Add node at center of viewport
   const handleAddNode = useCallback(
@@ -119,12 +133,9 @@ export default function App() {
   const handleSelectEdge = useCallback(
     (edgeId: string) => {
       setSelectedEdgeId(edgeId);
-      if (window.confirm('Delete this connection?')) {
-        deleteEdge(edgeId);
-      }
-      setSelectedEdgeId(null);
+      clearSelection(); // Deselect node if edge is clicked
     },
-    [deleteEdge]
+    [clearSelection]
   );
 
   return (
@@ -167,12 +178,22 @@ export default function App() {
         </div>
       )}
 
-      {selectedNode && !searchOpen && !settingsOpen && (
+      {selectedNode && !searchOpen && !settingsOpen && !selectedEdgeId && (
         <NodeDetailPanel
           node={selectedNode}
           onClose={clearSelection}
           onDelete={deleteNode}
           onStartConnect={handleStartConnect}
+        />
+      )}
+
+      {selectedEdge && (
+        <EdgeDetailModal
+          edge={selectedEdge}
+          sourceNode={edgeNodes.source}
+          targetNode={edgeNodes.target}
+          onClose={() => setSelectedEdgeId(null)}
+          onDelete={deleteEdge}
         />
       )}
 

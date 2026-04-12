@@ -434,6 +434,71 @@ body {
 }
 .detail-panel-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); flex-wrap: wrap; }
 
+/* Edge Detail Modal specific styles */
+.edge-detail { max-height: 60vh; }
+.edge-detail-visual {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding: var(--space-xl) 0;
+  position: relative;
+}
+.edge-detail-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+}
+.edge-detail-node-img, .edge-detail-node-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  margin-bottom: var(--space-sm);
+  box-shadow: var(--shadow-sm);
+}
+.edge-detail-node-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-hover);
+  font-size: 24px;
+}
+.edge-detail-node-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.edge-detail-node-subtitle {
+  font-size: 10px;
+  color: var(--text-secondary);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.edge-detail-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--accent);
+  opacity: 0.8;
+}
+.edge-detail-label {
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+
 /* Theme Customizer */
 .theme-section { margin-bottom: var(--space-xl); }
 .theme-section-title {
