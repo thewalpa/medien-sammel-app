@@ -23,7 +23,7 @@ export function useSwipeToDismiss<T extends HTMLElement>({
   threshold = 80,
   velocityThreshold = 0.5,
   maxDuration = 600,
-  enableScaling = true,
+  enableScaling = false,
   onDismiss,
 }: SwipeOptions) {
   const ref = useRef<T>(null);
@@ -37,7 +37,7 @@ export function useSwipeToDismiss<T extends HTMLElement>({
   const getOverlay = useCallback(() => {
     if (!ref.current) return null;
     if (overlayRef.current) return overlayRef.current;
-    
+
     // Search for modern app overlay classes
     const overlay = ref.current.closest('.modal-overlay, .sidebar-overlay') as HTMLElement;
     overlayRef.current = overlay;
@@ -49,7 +49,7 @@ export function useSwipeToDismiss<T extends HTMLElement>({
     startY.current = y;
     startTime.current = Date.now();
     dragging.current = true;
-    
+
     if (ref.current) {
       // IMPORTANT: Animation 'none' is required to override CSS fill-mode: both animations
       ref.current.style.animation = 'none';
@@ -69,11 +69,11 @@ export function useSwipeToDismiss<T extends HTMLElement>({
 
     const delta = direction === 'down' ? dy : -dx;
     const isReverse = direction === 'down' ? dy < 0 : dx > 0;
-    
+
     // Apply elastic resistance if dragging in reverse direction
     let effectiveDelta = delta;
     if (isReverse) {
-      effectiveDelta = delta / 4; 
+      effectiveDelta = delta / 4;
     }
 
     // Calculate progress and scale
@@ -82,10 +82,10 @@ export function useSwipeToDismiss<T extends HTMLElement>({
     const scale = enableScaling ? 1 - progress * 0.05 : 1;
 
     // Apply transform and scale
-    const translateVal = direction === 'down' 
-      ? `translateY(${effectiveDelta}px)` 
+    const translateVal = direction === 'down'
+      ? `translateY(${effectiveDelta}px)`
       : `translateX(${-effectiveDelta}px)`;
-      
+
     ref.current.style.transform = `${translateVal} scale(${scale})`;
 
     // Update backdrop opacity proportionally
@@ -111,23 +111,23 @@ export function useSwipeToDismiss<T extends HTMLElement>({
     if (shouldDismiss) {
       const translateFull = direction === 'down' ? 'translateY(100%)' : 'translateX(-100%)';
       const duration = 280;
-      
+
       ref.current.style.transition = `transform ${duration}ms ${NATIVE_EASING_DISMISS}`;
       ref.current.style.transform = translateFull;
-      
+
       const overlay = getOverlay();
       if (overlay) {
         overlay.style.transition = `background-color ${duration}ms linear, backdrop-filter ${duration}ms linear`;
         overlay.style.backgroundColor = 'transparent';
         overlay.style.backdropFilter = 'blur(0px)';
       }
-      
+
       setTimeout(onDismiss, duration);
     } else {
       const duration = 250;
       ref.current.style.transition = `transform ${duration}ms ${NATIVE_EASING_SNAP}`;
       ref.current.style.transform = '';
-      
+
       const overlay = getOverlay();
       if (overlay) {
         overlay.style.transition = `background-color ${duration}ms ${NATIVE_EASING_SNAP}, backdrop-filter ${duration}ms ${NATIVE_EASING_SNAP}`;
@@ -153,17 +153,17 @@ export function useSwipeToDismiss<T extends HTMLElement>({
   // Mouse Handlers
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     handleStart(e.clientX, e.clientY);
-    
+
     const onMouseMove = (me: MouseEvent) => {
       handleMove(me.clientX, me.clientY);
     };
-    
+
     const onMouseUp = (me: MouseEvent) => {
       handleEnd(me.clientX, me.clientY);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-    
+
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   }, [handleStart, handleMove, handleEnd]);

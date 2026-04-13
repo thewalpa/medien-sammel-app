@@ -110,17 +110,7 @@ export default function MediaSidebar({
         </div>
 
         <div className="sidebar-header">
-          <div className="sidebar-header-left">
-            <div className="sidebar-icon-wrap">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-            </div>
-            <span className="sidebar-title">Media Library</span>
-          </div>
+          <span className="sidebar-title">Media Library</span>
           <button className="modal-close" onClick={onClose} id="sidebar-close" aria-label="Close sidebar">
             ✕
           </button>

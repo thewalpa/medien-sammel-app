@@ -73,7 +73,7 @@ export default function ThemeCustomizer({
       >
         <div className="modal-handle" />
         <div className="modal-header">
-          <span className="modal-title">⚙ Settings</span>
+          <span className="modal-title">Settings</span>
           <button className="modal-close" onClick={onClose} id="settings-close">
             ✕
           </button>
@@ -128,10 +128,10 @@ export default function ThemeCustomizer({
                           bg.id === 'aurora'
                             ? 'auroraShift 6s ease-in-out infinite alternate'
                             : bg.id === 'fireflies'
-                            ? 'fireflyDrift 4s ease-in-out infinite alternate'
-                            : bg.id === 'waves'
-                            ? 'waveDrift 4s ease-in-out infinite'
-                            : 'none',
+                              ? 'fireflyDrift 4s ease-in-out infinite alternate'
+                              : bg.id === 'waves'
+                                ? 'waveDrift 4s ease-in-out infinite'
+                                : 'none',
                         backgroundSize: bg.id === 'waves' ? '200% 200%' : undefined,
                       }}
                     />

@@ -14,7 +14,7 @@ export default defineConfig({
       includeAssets: ['icons/icon-192.svg'],
       manifest: {
         name: 'Medien Sammel App',
-        short_name: 'MedienApp',
+        short_name: 'MedienSammelApp',
         description: 'Visually map out how you connect different pieces of media',
         theme_color: '#1a1520',
         background_color: '#1a1520',
