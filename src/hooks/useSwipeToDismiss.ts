@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 type Direction = 'down' | 'left';
 
@@ -6,21 +6,24 @@ interface SwipeOptions {
   direction: Direction;
   /** Pixels of movement required to trigger dismiss (default: 80) */
   threshold?: number;
+  /** Velocity threshold in px/ms (default: 0.5) */
+  velocityThreshold?: number;
   /** Max ms for the whole gesture to count (default: 600) */
   maxDuration?: number;
+  /** Whether to scale down the panel during drag (default: true) */
+  enableScaling?: boolean;
   onDismiss: () => void;
 }
 
-/**
- * Returns ref + touch handlers that dismiss the element when the user
- * swipes in the given direction far enough and fast enough.
- *
- * Attach `ref` to the panel/sheet element and spread `handlers` onto it.
- */
+const NATIVE_EASING_DISMISS = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const NATIVE_EASING_SNAP = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
+
 export function useSwipeToDismiss<T extends HTMLElement>({
   direction,
   threshold = 80,
+  velocityThreshold = 0.5,
   maxDuration = 600,
+  enableScaling = true,
   onDismiss,
 }: SwipeOptions) {
   const ref = useRef<T>(null);
@@ -28,67 +31,145 @@ export function useSwipeToDismiss<T extends HTMLElement>({
   const startY = useRef(0);
   const startTime = useRef(0);
   const dragging = useRef(false);
+  const overlayRef = useRef<HTMLElement | null>(null);
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    const t = e.touches[0];
-    startX.current = t.clientX;
-    startY.current = t.clientY;
-    startTime.current = Date.now();
-    dragging.current = true;
-    if (ref.current) {
-      ref.current.style.transition = 'none';
-    }
+  // Helper to find and store the overlay parent
+  const getOverlay = useCallback(() => {
+    if (!ref.current) return null;
+    if (overlayRef.current) return overlayRef.current;
+    
+    // Search for modern app overlay classes
+    const overlay = ref.current.closest('.modal-overlay, .sidebar-overlay') as HTMLElement;
+    overlayRef.current = overlay;
+    return overlay;
   }, []);
 
-  const onTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      if (!dragging.current || !ref.current) return;
-      const t = e.touches[0];
-      const dx = t.clientX - startX.current;
-      const dy = t.clientY - startY.current;
-
-      if (direction === 'down') {
-        if (dy < 0) return; // don't allow upward drag
-        ref.current.style.transform = `translateY(${dy}px)`;
-      } else {
-        // left
-        if (dx > 0) return; // don't allow rightward drag
-        ref.current.style.transform = `translateX(${dx}px)`;
+  const handleStart = useCallback((x: number, y: number) => {
+    startX.current = x;
+    startY.current = y;
+    startTime.current = Date.now();
+    dragging.current = true;
+    
+    if (ref.current) {
+      // IMPORTANT: Animation 'none' is required to override CSS fill-mode: both animations
+      ref.current.style.animation = 'none';
+      ref.current.style.transition = 'none';
+      const overlay = getOverlay();
+      if (overlay) {
+        overlay.style.animation = 'none';
+        overlay.style.transition = 'none';
       }
-    },
-    [direction]
-  );
+    }
+  }, [getOverlay]);
 
-  const onTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      if (!dragging.current || !ref.current) return;
-      dragging.current = false;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - startX.current;
-      const dy = t.clientY - startY.current;
-      const elapsed = Date.now() - startTime.current;
+  const handleMove = useCallback((x: number, y: number) => {
+    if (!dragging.current || !ref.current) return;
+    const dx = x - startX.current;
+    const dy = y - startY.current;
 
-      const delta = direction === 'down' ? dy : -dx;
-      const shouldDismiss = delta >= threshold && elapsed <= maxDuration;
+    const delta = direction === 'down' ? dy : -dx;
+    const isReverse = direction === 'down' ? dy < 0 : dx > 0;
+    
+    // Apply elastic resistance if dragging in reverse direction
+    let effectiveDelta = delta;
+    if (isReverse) {
+      effectiveDelta = delta / 4; 
+    }
 
-      if (shouldDismiss) {
-        // Animate fully off-screen then call onDismiss
-        const translateVal =
-          direction === 'down' ? 'translateY(100%)' : 'translateX(-100%)';
-        ref.current.style.transition = 'transform 220ms ease';
-        ref.current.style.transform = translateVal;
-        setTimeout(onDismiss, 220);
-      } else {
-        // Snap back
-        ref.current.style.transition = 'transform 220ms ease';
-        ref.current.style.transform = '';
+    // Calculate progress and scale
+    const limit = direction === 'down' ? window.innerHeight : window.innerWidth;
+    const progress = Math.min(Math.max(effectiveDelta / limit, 0), 1);
+    const scale = enableScaling ? 1 - progress * 0.05 : 1;
+
+    // Apply transform and scale
+    const translateVal = direction === 'down' 
+      ? `translateY(${effectiveDelta}px)` 
+      : `translateX(${-effectiveDelta}px)`;
+      
+    ref.current.style.transform = `${translateVal} scale(${scale})`;
+
+    // Update backdrop opacity proportionally
+    const overlay = getOverlay();
+    if (overlay) {
+      overlay.style.backgroundColor = `rgba(18, 14, 22, ${0.85 * (1 - progress)})`;
+      overlay.style.backdropFilter = `blur(${16 * (1 - progress)}px)`;
+    }
+  }, [direction, enableScaling, getOverlay]);
+
+  const handleEnd = useCallback((x: number, y: number) => {
+    if (!dragging.current || !ref.current) return;
+    dragging.current = false;
+    const dx = x - startX.current;
+    const dy = y - startY.current;
+    const elapsed = Date.now() - startTime.current;
+
+    const delta = direction === 'down' ? dy : -dx;
+    const velocity = delta / elapsed;
+
+    const shouldDismiss = (delta >= threshold || velocity >= velocityThreshold) && elapsed <= maxDuration;
+
+    if (shouldDismiss) {
+      const translateFull = direction === 'down' ? 'translateY(100%)' : 'translateX(-100%)';
+      const duration = 280;
+      
+      ref.current.style.transition = `transform ${duration}ms ${NATIVE_EASING_DISMISS}`;
+      ref.current.style.transform = translateFull;
+      
+      const overlay = getOverlay();
+      if (overlay) {
+        overlay.style.transition = `background-color ${duration}ms linear, backdrop-filter ${duration}ms linear`;
+        overlay.style.backgroundColor = 'transparent';
+        overlay.style.backdropFilter = 'blur(0px)';
       }
-    },
-    [direction, threshold, maxDuration, onDismiss]
-  );
+      
+      setTimeout(onDismiss, duration);
+    } else {
+      const duration = 250;
+      ref.current.style.transition = `transform ${duration}ms ${NATIVE_EASING_SNAP}`;
+      ref.current.style.transform = '';
+      
+      const overlay = getOverlay();
+      if (overlay) {
+        overlay.style.transition = `background-color ${duration}ms ${NATIVE_EASING_SNAP}, backdrop-filter ${duration}ms ${NATIVE_EASING_SNAP}`;
+        overlay.style.backgroundColor = '';
+        overlay.style.backdropFilter = '';
+      }
+    }
+  }, [direction, threshold, velocityThreshold, maxDuration, onDismiss, getOverlay]);
+
+  // Touch Handlers
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    handleStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, [handleStart]);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    handleMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, [handleMove]);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    handleEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  }, [handleEnd]);
+
+  // Mouse Handlers
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    handleStart(e.clientX, e.clientY);
+    
+    const onMouseMove = (me: MouseEvent) => {
+      handleMove(me.clientX, me.clientY);
+    };
+    
+    const onMouseUp = (me: MouseEvent) => {
+      handleEnd(me.clientX, me.clientY);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+    
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }, [handleStart, handleMove, handleEnd]);
 
   return {
     ref,
-    handlers: { onTouchStart, onTouchMove, onTouchEnd },
+    handlers: { onTouchStart, onTouchMove, onTouchEnd, onMouseDown },
   };
 }

@@ -283,6 +283,9 @@ body {
   display: flex; flex-direction: column;
   animation: slideUp var(--transition-slow) both;
   padding-bottom: var(--safe-bottom);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .modal-handle {
@@ -417,6 +420,9 @@ body {
   animation: slideUp var(--transition-slow) both;
   padding-bottom: var(--safe-bottom);
   display: flex; flex-direction: column; overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .detail-panel-content {
   flex: 1; overflow-y: auto; padding: var(--space-lg);
@@ -447,7 +453,9 @@ body {
   animation: slideInLeft var(--transition-slow) both;
   padding-top: var(--safe-top);
   position: relative;
-  touch-action: pan-y;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 
@@ -461,8 +469,10 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 1;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: grab;
 }
+.sidebar-drag-rail:active { cursor: grabbing; }
 .sidebar-drag-handle {
   width: 4px; height: 40px;
   border-radius: var(--radius-full);
