@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MEDIA_TYPE_EMOJI, MEDIA_TYPE_LABELS } from '../data/themes';
 import { hasTmdbKey } from '../services/tmdb';
 import type { Node } from '../types';
+import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 
 const TYPES = ['book', 'music', 'art', 'movie'];
 
@@ -23,6 +24,12 @@ export default function MediaSearchModal({
   const [manualTitle, setManualTitle] = useState('');
   const [manualSubtitle, setManualSubtitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { ref, handlers } = useSwipeToDismiss<HTMLDivElement>({
+    direction: 'down',
+    threshold: 80,
+    onDismiss: onClose,
+  });
 
   useEffect(() => {
     if (open) {
@@ -65,7 +72,7 @@ export default function MediaSearchModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+      <div ref={ref} className="modal-sheet" onClick={(e) => e.stopPropagation()} {...handlers}>
         <div className="modal-handle" />
         <div className="modal-header">
           <span className="modal-title">Add Media</span>
@@ -117,7 +124,7 @@ export default function MediaSearchModal({
         <div className="modal-body">
           {mediaType === 'movie' && !hasTmdbKey() && (
             <div className="search-empty" style={{ color: 'var(--accent)' }}>
-              🎬 Add your free TMDB API key in Settings to search movies & series.
+              🎬 Add your free TMDB API key in Settings to search movies &amp; series.
               <br />
               <br />
               You can still add them manually below.

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Edge, Node } from '../types';
 import { MEDIA_TYPE_EMOJI } from '../data/themes';
+import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 
 interface EdgeDetailModalProps {
   edge: Edge | null;
@@ -32,10 +33,16 @@ export default function EdgeDetailModal({
   onClose,
   onDelete,
 }: EdgeDetailModalProps) {
+  const { ref, handlers } = useSwipeToDismiss<HTMLDivElement>({
+    direction: 'down',
+    threshold: 60,
+    onDismiss: onClose,
+  });
+
   if (!edge || !sourceNode || !targetNode) return null;
 
   return (
-    <div className="detail-panel edge-detail" id="edge-detail-panel">
+    <div ref={ref} className="detail-panel edge-detail" id="edge-detail-panel" {...handlers}>
       <div className="modal-handle" />
       <div className="detail-panel-content">
         <div className="modal-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>

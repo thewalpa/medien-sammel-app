@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Node } from '../types';
 import { MEDIA_TYPE_EMOJI } from '../data/themes';
+import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 
 interface NodeDetailPanelProps {
   node: Node | null;
@@ -15,12 +16,18 @@ export default function NodeDetailPanel({
   onDelete,
   onStartConnect,
 }: NodeDetailPanelProps) {
+  const { ref, handlers } = useSwipeToDismiss<HTMLDivElement>({
+    direction: 'down',
+    threshold: 60,
+    onDismiss: onClose,
+  });
+
   if (!node) return null;
 
   const emoji = MEDIA_TYPE_EMOJI[node.type] || '📌';
 
   return (
-    <div className="detail-panel" id="detail-panel">
+    <div ref={ref} className="detail-panel" id="detail-panel" {...handlers}>
       <div className="modal-handle" />
       <div className="detail-panel-content">
         <div className="detail-panel-header">

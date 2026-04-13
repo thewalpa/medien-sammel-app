@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { THEMES, ANIMATED_BACKGROUNDS } from '../data/themes';
 import { getTmdbKey, setTmdbKey } from '../services/tmdb';
 import { exportCanvasAsJSON, importCanvasFromJSON } from '../services/storage';
+import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 
 interface ThemeCustomizerProps {
   open: boolean;
@@ -26,6 +27,12 @@ export default function ThemeCustomizer({
 }: ThemeCustomizerProps) {
   const [tmdbKey, setTmdbKeyLocal] = useState(getTmdbKey());
   const [importMsg, setImportMsg] = useState('');
+
+  const { ref, handlers } = useSwipeToDismiss<HTMLDivElement>({
+    direction: 'down',
+    threshold: 80,
+    onDismiss: onClose,
+  });
 
   if (!open) return null;
 
@@ -58,9 +65,11 @@ export default function ThemeCustomizer({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
+        ref={ref}
         className="modal-sheet"
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: '95vh' }}
+        {...handlers}
       >
         <div className="modal-handle" />
         <div className="modal-header">
@@ -162,7 +171,7 @@ export default function ThemeCustomizer({
 
           {/* TMDB API Key */}
           <div className="theme-section">
-            <div className="theme-section-title">TMDB API Key (Movies & Series)</div>
+            <div className="theme-section-title">TMDB API Key (Movies &amp; Series)</div>
             <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
               Get a free key at{' '}
               <span style={{ color: 'var(--accent)' }}>themoviedb.org/settings/api</span>
