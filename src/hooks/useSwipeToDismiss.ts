@@ -44,7 +44,14 @@ export function useSwipeToDismiss<T extends HTMLElement>({
     return overlay;
   }, []);
 
-  const handleStart = useCallback((x: number, y: number) => {
+  const handleStart = useCallback((x: number, y: number, target?: EventTarget | null) => {
+    if (target instanceof Element) {
+      // Ignore swipe gesture if starting inside scrollable content so native scroll works on iOS
+      if (target.closest('.modal-body, .sidebar-body, .search-results, .detail-panel-content')) {
+        return;
+      }
+    }
+
     startX.current = x;
     startY.current = y;
     startTime.current = Date.now();
@@ -139,7 +146,7 @@ export function useSwipeToDismiss<T extends HTMLElement>({
 
   // Touch Handlers
   const onTouchStart = useCallback((e: React.TouchEvent) => {
-    handleStart(e.touches[0].clientX, e.touches[0].clientY);
+    handleStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
   }, [handleStart]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
@@ -152,7 +159,7 @@ export function useSwipeToDismiss<T extends HTMLElement>({
 
   // Mouse Handlers
   const onMouseDown = useCallback((e: React.MouseEvent) => {
-    handleStart(e.clientX, e.clientY);
+    handleStart(e.clientX, e.clientY, e.target);
 
     const onMouseMove = (me: MouseEvent) => {
       handleMove(me.clientX, me.clientY);

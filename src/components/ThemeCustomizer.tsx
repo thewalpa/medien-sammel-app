@@ -68,7 +68,7 @@ export default function ThemeCustomizer({
         ref={ref}
         className="modal-sheet"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: '95vh' }}
+        style={{ maxHeight: '95dvh' }}
         {...handlers}
       >
         <div className="modal-handle" />
