@@ -315,6 +315,7 @@ body {
 .search-tabs {
   display: flex; gap: var(--space-xs); padding: 0 var(--space-lg);
   overflow-x: auto; flex-shrink: 0; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .search-tabs::-webkit-scrollbar { display: none; }
 .search-tab {

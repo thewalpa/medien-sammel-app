@@ -47,7 +47,7 @@ export function useSwipeToDismiss<T extends HTMLElement>({
   const handleStart = useCallback((x: number, y: number, target?: EventTarget | null) => {
     if (target instanceof Element) {
       // Ignore swipe gesture if starting inside scrollable content so native scroll works on iOS
-      if (target.closest('.modal-body, .sidebar-body, .search-results, .detail-panel-content')) {
+      if (target.closest('.modal-body, .sidebar-body, .search-results, .detail-panel-content, .search-tabs')) {
         return;
       }
     }
