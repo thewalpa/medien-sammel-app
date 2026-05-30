@@ -16,7 +16,7 @@ import { useTheme } from './hooks/useTheme';
 import { useMediaSearch } from './hooks/useMediaSearch';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { screenToCanvas } from './canvas/canvasUtils';
-import { applyDecadeClustering } from './utils/layout';
+import { applyDecadeClustering, applyRadialDecadeLayout, applySpiralLayout } from './utils/layout';
 import type { LayoutStrategy } from './utils/layout';
 
 export default function App() {
@@ -96,6 +96,10 @@ export default function App() {
     
     if (strategy === 'decade') {
       positions = applyDecadeClustering(state.nodes);
+    } else if (strategy === 'radial') {
+      positions = applyRadialDecadeLayout(state.nodes);
+    } else if (strategy === 'spiral') {
+      positions = applySpiralLayout(state.nodes);
     }
     
     reorganizeNodes(positions);
