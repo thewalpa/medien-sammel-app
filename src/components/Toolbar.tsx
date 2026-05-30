@@ -6,6 +6,7 @@ interface ToolbarProps {
   onAddMedia: () => void;
   onToggleConnect: () => void;
   onOpenSettings: () => void;
+  onOpenLayout: () => void;
   connectingFromId: string | null;
 }
 
@@ -14,6 +15,7 @@ export default function Toolbar({
   onAddMedia,
   onToggleConnect,
   onOpenSettings,
+  onOpenLayout,
   connectingFromId,
 }: ToolbarProps) {
   return (
@@ -70,6 +72,28 @@ export default function Toolbar({
         >
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+
+      <button
+        className="toolbar-btn"
+        onClick={onOpenLayout}
+        title="Reorganize Layout"
+        id="btn-reorganize"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <rect x="3" y="3" width="7" height="9" rx="1" />
+          <rect x="14" y="3" width="7" height="5" rx="1" />
+          <rect x="14" y="12" width="7" height="9" rx="1" />
+          <rect x="3" y="16" width="7" height="5" rx="1" />
         </svg>
       </button>
 

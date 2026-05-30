@@ -37,7 +37,13 @@ function SidebarItem({
       )}
       <div className="sidebar-item-info">
         <div className="sidebar-item-title">{node.title}</div>
-        <div className="sidebar-item-subtitle">{node.subtitle}</div>
+        <div className="sidebar-item-subtitle">
+          {node.subtitle
+            ? node.data.year && !node.subtitle.includes(String(node.data.year))
+              ? `${node.subtitle} · ${node.data.year}`
+              : node.subtitle
+            : node.data.year || ''}
+        </div>
       </div>
       {selected && <div className="sidebar-item-active-dot" />}
     </div>

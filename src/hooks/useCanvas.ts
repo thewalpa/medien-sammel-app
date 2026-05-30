@@ -27,6 +27,7 @@ type CanvasAction =
   | { type: 'START_CONNECTING'; payload: string }
   | { type: 'FINISH_CONNECTING' }
   | { type: 'SET_MODE'; payload: AppMode }
+  | { type: 'REORGANIZE_NODES'; payload: Record<string, Position> }
   | { type: 'CLEAR_SELECTION' };
 
 function canvasReducer(state: CanvasState, action: CanvasAction): CanvasState {
@@ -110,6 +111,13 @@ function canvasReducer(state: CanvasState, action: CanvasAction): CanvasState {
         mode: action.payload,
         connectingFromId: action.payload === 'pan' ? null : state.connectingFromId,
       };
+    case 'REORGANIZE_NODES':
+      return {
+        ...state,
+        nodes: state.nodes.map((n) =>
+          action.payload[n.id] ? { ...n, position: action.payload[n.id] } : n
+        ),
+      };
     case 'CLEAR_SELECTION':
       return { ...state, selectedNodeId: null };
     default:
@@ -127,6 +135,10 @@ export function useCanvas() {
   );
   const updateNode = useCallback(
     (id: string, updates: Partial<Node>) => dispatch({ type: 'UPDATE_NODE', payload: { id, updates } }),
+    []
+  );
+  const reorganizeNodes = useCallback(
+    (positions: Record<string, Position>) => dispatch({ type: 'REORGANIZE_NODES', payload: positions }),
     []
   );
   const deleteNode = useCallback((id: string) => dispatch({ type: 'DELETE_NODE', payload: id }), []);
@@ -158,6 +170,7 @@ export function useCanvas() {
     addNode,
     moveNode,
     updateNode,
+    reorganizeNodes,
     deleteNode,
     addEdge,
     deleteEdge,

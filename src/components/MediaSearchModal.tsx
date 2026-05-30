@@ -6,6 +6,8 @@ import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 
 const TYPES = ['book', 'music', 'art', 'movie'];
 
+const PLACEHOLDER_YEAR = new Date().getFullYear().toString();
+
 interface MediaSearchModalProps {
   open: boolean;
   onClose: () => void;
@@ -23,6 +25,7 @@ export default function MediaSearchModal({
     mediaSearch;
   const [manualTitle, setManualTitle] = useState('');
   const [manualSubtitle, setManualSubtitle] = useState('');
+  const [manualYear, setManualYear] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { ref, handlers } = useSwipeToDismiss<HTMLDivElement>({
@@ -36,6 +39,7 @@ export default function MediaSearchModal({
       clearSearch();
       setManualTitle('');
       setManualSubtitle('');
+      setManualYear(PLACEHOLDER_YEAR);
       setTimeout(() => inputRef.current?.focus(), 350);
     }
   }, [open, clearSearch]);
@@ -43,6 +47,8 @@ export default function MediaSearchModal({
   if (!open) return null;
 
   const handleAddResult = (result: any) => {
+    const fallbackYear = new Date().getFullYear();
+    const finalYear = result.year ? parseInt(result.year, 10) || fallbackYear : fallbackYear;
     onAddNode({
       type: result.type,
       title: result.title,
@@ -51,7 +57,7 @@ export default function MediaSearchModal({
       data: {
         externalId: result.externalId,
         source: result.source,
-        year: result.year,
+        year: finalYear,
         rawData: result.rawData,
       },
     });
@@ -59,13 +65,18 @@ export default function MediaSearchModal({
   };
 
   const handleAddManual = () => {
-    if (!manualTitle.trim()) return;
+    if (!manualTitle.trim() || !manualYear.trim()) return;
+    const yearParsed = parseInt(manualYear.trim(), 10);
+    if (isNaN(yearParsed)) return;
     onAddNode({
       type: mediaType,
       title: manualTitle.trim(),
       subtitle: manualSubtitle.trim(),
       imageUrl: null,
-      data: { source: 'manual' },
+      data: {
+        source: 'manual',
+        year: yearParsed,
+      },
     });
     onClose();
   };
@@ -186,15 +197,25 @@ export default function MediaSearchModal({
             />
             <input
               className="input"
-              placeholder="Subtitle (artist, year, etc.)"
+              placeholder="Subtitle (artist, publisher, etc.)"
               value={manualSubtitle}
               onChange={(e) => setManualSubtitle(e.target.value)}
               id="manual-subtitle"
             />
+            <input
+              className="input"
+              placeholder="Year"
+              type="number"
+              value={manualYear}
+              onChange={(e) => setManualYear(e.target.value)}
+              id="manual-year"
+              min="0"
+              max="2100"
+            />
             <button
               className="btn btn-primary btn-block"
               onClick={handleAddManual}
-              disabled={!manualTitle.trim()}
+              disabled={!manualTitle.trim() || !manualYear.trim() || isNaN(parseInt(manualYear, 10))}
               id="btn-add-manual"
             >
               Add to Canvas

@@ -104,7 +104,13 @@ export default function CanvasNode({
         )}
         <div className="node-info">
           <div className="node-title">{node.title}</div>
-          {node.subtitle && <div className="node-subtitle">{node.subtitle}</div>}
+          <div className="node-subtitle">
+            {node.subtitle
+              ? node.data.year && !node.subtitle.includes(String(node.data.year))
+                ? `${node.subtitle} · ${node.data.year}`
+                : node.subtitle
+              : node.data.year || ''}
+          </div>
           <span className={'node-type-badge ' + node.type}>{node.type}</span>
         </div>
       </div>

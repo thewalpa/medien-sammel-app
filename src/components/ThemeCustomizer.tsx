@@ -217,7 +217,7 @@ export default function ThemeCustomizer({
               fontSize: '11px',
             }}
           >
-            Medien Sammel App v0.1.1
+            Medien Sammel App v0.1.2
           </div>
         </div>
       </div>

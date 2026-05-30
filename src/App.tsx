@@ -7,6 +7,7 @@ import NodeDetailPanel from './components/NodeDetailPanel';
 import EdgeDetailModal from './components/EdgeDetailModal';
 import MediaSidebar from './components/MediaSidebar';
 import ThemeCustomizer from './components/ThemeCustomizer';
+import LayoutModal from './components/LayoutModal';
 import OfflineBanner from './components/OfflineBanner';
 import InstallBanner from './components/InstallBanner';
 import { useCanvas } from './hooks/useCanvas';
@@ -15,12 +16,16 @@ import { useTheme } from './hooks/useTheme';
 import { useMediaSearch } from './hooks/useMediaSearch';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { screenToCanvas } from './canvas/canvasUtils';
+import { applyDecadeClustering } from './utils/layout';
+import type { LayoutStrategy } from './utils/layout';
 
 export default function App() {
   const {
     state,
     addNode,
     moveNode,
+    updateNode,
+    reorganizeNodes,
     deleteNode,
     addEdge,
     deleteEdge,
@@ -40,6 +45,7 @@ export default function App() {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [layoutOpen, setLayoutOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 
@@ -83,6 +89,38 @@ export default function App() {
     },
     [addNode, state.viewport]
   );
+
+  const handleApplyLayout = useCallback((strategy: LayoutStrategy) => {
+    if (state.nodes.length === 0) return;
+    let positions: Record<string, { x: number; y: number }> = {};
+    
+    if (strategy === 'decade') {
+      positions = applyDecadeClustering(state.nodes);
+    }
+    
+    reorganizeNodes(positions);
+    
+    // Center the viewport on the new bounding box
+    const nodeIds = Object.keys(positions);
+    if (nodeIds.length > 0) {
+      const xs = nodeIds.map(id => positions[id].x);
+      const ys = nodeIds.map(id => positions[id].y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs) + 120; // Node width is 120px
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys) + 160; // Approximate node height
+      
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      
+      const zoom = state.viewport.zoom;
+      setViewport({
+        x: window.innerWidth / 2 - centerX * zoom,
+        y: window.innerHeight / 2 - centerY * zoom,
+        zoom,
+      });
+    }
+  }, [state.nodes, state.viewport.zoom, reorganizeNodes, setViewport]);
 
   // Navigation Logic
   const handleFocusNode = useCallback(
@@ -235,6 +273,7 @@ export default function App() {
           onClose={clearSelection}
           onDelete={deleteNode}
           onStartConnect={handleStartConnect}
+          onUpdate={updateNode}
         />
       )}
 
@@ -254,6 +293,7 @@ export default function App() {
         onAddMedia={() => setSearchOpen(true)}
         onToggleConnect={handleToggleConnect}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenLayout={() => setLayoutOpen(true)}
       />
 
       <MediaSearchModal
@@ -261,6 +301,13 @@ export default function App() {
         onClose={() => setSearchOpen(false)}
         onAddNode={handleAddNode}
         mediaSearch={mediaSearch}
+      />
+
+      <LayoutModal
+        open={layoutOpen}
+        onClose={() => setLayoutOpen(false)}
+        onApplyLayout={handleApplyLayout}
+        nodeCount={state.nodes.length}
       />
 
       <ThemeCustomizer
