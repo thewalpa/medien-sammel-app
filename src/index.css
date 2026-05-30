@@ -21,6 +21,11 @@
   --color-music: #9b72cf;
   --color-art: #56b6a2;
   --color-book: #d4a24e;
+  --color-quote: #4ea8de;
+  --color-fashion: #f72585;
+  --color-ad: #ffb703;
+  --color-person: #d64f8c;
+  --color-place: #48cae4;
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-medium: rgba(255, 255, 255, 0.10);
   --border-focus: var(--accent);
@@ -239,6 +244,11 @@ body {
 .node-type-badge.music { background: var(--color-music); }
 .node-type-badge.art   { background: var(--color-art); }
 .node-type-badge.book  { background: var(--color-book); }
+.node-type-badge.quote { background: var(--color-quote); }
+.node-type-badge.fashion { background: var(--color-fashion); }
+.node-type-badge.ad    { background: var(--color-ad); }
+.node-type-badge.person { background: var(--color-person); }
+.node-type-badge.place { background: var(--color-place); }
 
 /* Toolbar */
 .toolbar {
@@ -554,6 +564,11 @@ body {
 .sidebar-item-thumb-placeholder.music { background: rgba(155,114,207,0.18); }
 .sidebar-item-thumb-placeholder.art   { background: rgba(86,182,162,0.18); }
 .sidebar-item-thumb-placeholder.book  { background: rgba(212,162,78,0.18); }
+.sidebar-item-thumb-placeholder.quote { background: rgba(78,168,222,0.18); }
+.sidebar-item-thumb-placeholder.fashion { background: rgba(247,37,133,0.18); }
+.sidebar-item-thumb-placeholder.ad    { background: rgba(255,183,3,0.18); }
+.sidebar-item-thumb-placeholder.person { background: rgba(214,79,140,0.18); }
+.sidebar-item-thumb-placeholder.place { background: rgba(72,202,228,0.18); }
 .sidebar-item-info { flex: 1; min-width: 0; }
 .sidebar-item-title {
   font-size: var(--font-size-sm); font-weight: var(--font-weight-semi);

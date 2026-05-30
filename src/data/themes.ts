@@ -150,7 +150,27 @@ export const ANIMATED_BACKGROUNDS: AnimatedBackground[] = [
   },
 ];
 
-export const MEDIA_TYPE_EMOJI: Record<string, string> = { movie: '🎬', music: '🎵', art: '🎨', book: '📚' };
-export const MEDIA_TYPE_LABELS: Record<string, string> = { movie: 'Movies & Series', music: 'Music', art: 'Art', book: 'Books & Audio' };
+export const MEDIA_TYPE_EMOJI: Record<string, string> = {
+  movie: '🎬',
+  music: '🎵',
+  art: '🎨',
+  book: '📚',
+  quote: '❝',
+  fashion: '🧥',
+  ad: '📢',
+  person: '👤',
+  place: '📍',
+};
+export const MEDIA_TYPE_LABELS: Record<string, string> = {
+  movie: 'Movies & Series',
+  music: 'Music',
+  art: 'Art',
+  book: 'Books & Audio',
+  quote: 'Quotes',
+  fashion: 'Fashion',
+  ad: 'Ads & Campaigns',
+  person: 'Person',
+  place: 'Place',
+};
 export const DEFAULT_THEME_ID = 'cozy-dark';
 export const DEFAULT_BG_ID = 'aurora';

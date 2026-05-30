@@ -3,6 +3,9 @@ import { searchBooks } from '../services/openLibrary';
 import { searchMusic } from '../services/musicBrainz';
 import { searchArt } from '../services/metMuseum';
 import { searchMovies, hasTmdbKey } from '../services/tmdb';
+import { searchQuotes } from '../services/quotes';
+import { searchFashion, searchAds } from '../services/vaMuseum';
+import { searchWikipedia } from '../services/wikipedia';
 import type { MediaItem } from '../types';
 
 type SearchFn = (query: string) => Promise<any[]>;
@@ -12,6 +15,11 @@ const searchFns: Record<string, SearchFn> = {
   music: searchMusic,
   art: searchArt,
   book: searchBooks,
+  quote: searchQuotes,
+  fashion: searchFashion,
+  ad: searchAds,
+  person: (q) => searchWikipedia(q, 'person'),
+  place: (q) => searchWikipedia(q, 'place'),
 };
 
 export function useMediaSearch() {

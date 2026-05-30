@@ -4,7 +4,9 @@ import { hasTmdbKey } from '../services/tmdb';
 import type { Node } from '../types';
 import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 
-const TYPES = ['book', 'music', 'art', 'movie'];
+const MEDIA_TYPES = ['book', 'music', 'art', 'movie', 'quote', 'fashion', 'ad'];
+const ENTITY_TYPES = ['person', 'place'];
+const ALL_TYPES = [...MEDIA_TYPES, ...ENTITY_TYPES];
 
 const PLACEHOLDER_YEAR = new Date().getFullYear().toString();
 
@@ -93,17 +95,34 @@ export default function MediaSearchModal({
         </div>
 
         {/* Type tabs */}
-        <div className="search-tabs">
-          {TYPES.map((t) => (
-            <button
-              key={t}
-              className={'search-tab' + (mediaType === t ? ' active' : '')}
-              onClick={() => changeType(t)}
-              id={'tab-' + t}
-            >
-              {MEDIA_TYPE_EMOJI[t]} {MEDIA_TYPE_LABELS[t]}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 var(--space-lg)', flexShrink: 0 }}>
+          <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Media Items</div>
+          <div className="search-tabs" style={{ padding: 0 }}>
+            {MEDIA_TYPES.map((t) => (
+              <button
+                key={t}
+                className={'search-tab' + (mediaType === t ? ' active' : '')}
+                onClick={() => changeType(t)}
+                id={'tab-' + t}
+              >
+                {MEDIA_TYPE_EMOJI[t]} {MEDIA_TYPE_LABELS[t]}
+              </button>
+            ))}
+          </div>
+          
+          <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '4px' }}>Context Entities</div>
+          <div className="search-tabs" style={{ padding: 0 }}>
+            {ENTITY_TYPES.map((t) => (
+              <button
+                key={t}
+                className={'search-tab' + (mediaType === t ? ' active' : '')}
+                onClick={() => changeType(t)}
+                id={'tab-' + t}
+              >
+                {MEDIA_TYPE_EMOJI[t]} {MEDIA_TYPE_LABELS[t]}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Search input */}
