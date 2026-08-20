@@ -160,22 +160,18 @@ export default function EdgeDetailModal({
           </div>
         ) : (
           <>
-            <div className="edge-detail-note-section">
-              <div className="edge-detail-note-heading">
-                <span className="edge-detail-note-title">Note</span>
-                {edge.noteUpdatedAt && note && (
-                  <span className="edge-detail-note-date">{formatNoteDate(edge.noteUpdatedAt)}</span>
-                )}
-              </div>
-              {note ? (
-                <p className="edge-detail-note-body">{note}</p>
-              ) : (
-                <p className="edge-detail-note-empty">
-                  No note yet — jot down what links these two.
-                </p>
-              )}
-            </div>
+            {note && (
+              <div className="edge-detail-note-section">
+                <div className="edge-detail-note-heading">
+                  <span className="edge-detail-note-title">Note</span>
+                  {edge.noteUpdatedAt && note && (
+                    <span className="edge-detail-note-date">{formatNoteDate(edge.noteUpdatedAt)}</span>
+                  )}
+                </div>
 
+                <p className="edge-detail-note-body">{note}</p>
+              </div>
+            )}
             <div className="detail-panel-actions">
               <button
                 className="btn btn-secondary"

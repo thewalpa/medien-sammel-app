@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import type { Edge, Position } from '../types';
 import { getEdgePath } from './canvasUtils';
 
@@ -13,7 +13,7 @@ interface CanvasEdgeProps {
   onSelect: (id: string) => void;
 }
 
-export default function CanvasEdge({ edge, fromPos, toPos, selected, onSelect }: CanvasEdgeProps) {
+function CanvasEdge({ edge, fromPos, toPos, selected, onSelect }: CanvasEdgeProps) {
   const { path, midpoint, normal } = getEdgePath(fromPos, toPos);
   const hasNote = Boolean(edge.note && edge.note.trim());
 
@@ -60,3 +60,5 @@ export default function CanvasEdge({ edge, fromPos, toPos, selected, onSelect }:
     </g>
   );
 }
+
+export default memo(CanvasEdge);

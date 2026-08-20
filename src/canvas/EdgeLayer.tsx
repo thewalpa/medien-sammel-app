@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import type { Edge, Node, Position } from '../types';
 import CanvasEdge from './CanvasEdge';
 
@@ -10,17 +10,21 @@ interface EdgeLayerProps {
   connectingLine: { from: Position; to: Position } | null;
 }
 
-export default function EdgeLayer({
+function EdgeLayer({
   edges,
   nodes,
   selectedEdgeId,
   onSelectEdge,
   connectingLine,
 }: EdgeLayerProps) {
-  const nodeMap: Record<string, Position> = {};
-  nodes.forEach((n) => {
-    nodeMap[n.id] = n.position;
-  });
+  // Rebuild only when the node list actually changes, not on every parent render
+  const nodeMap = useMemo(() => {
+    const map: Record<string, Position> = {};
+    nodes.forEach((n) => {
+      map[n.id] = n.position;
+    });
+    return map;
+  }, [nodes]);
 
   return (
     <svg
@@ -62,3 +66,5 @@ export default function EdgeLayer({
     </svg>
   );
 }
+
+export default memo(EdgeLayer);

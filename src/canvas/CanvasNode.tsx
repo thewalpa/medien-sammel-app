@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, memo } from 'react';
 import type { Node, Position, AppMode } from '../types';
 import { MEDIA_TYPE_EMOJI } from '../data/themes';
 
@@ -7,19 +7,20 @@ interface CanvasNodeProps {
   selected: boolean;
   connecting: boolean;
   mode: AppMode;
-  zoom: number;
+  /** Reads the live zoom without re-rendering the node when it changes */
+  getZoom: () => number;
   onSelect: (id: string) => void;
   onMove: (id: string, position: Position) => void;
   onStartConnect: (id: string) => void;
   onFinishConnect: (id: string) => void;
 }
 
-export default function CanvasNode({
+function CanvasNode({
   node,
   selected,
   connecting,
   mode,
-  zoom,
+  getZoom,
   onSelect,
   onMove,
   onStartConnect,
@@ -41,7 +42,7 @@ export default function CanvasNode({
       const startX = e.clientX;
       const startY = e.clientY;
       const startPos = { ...node.position };
-      const currentZoom = zoom || 1;
+      const currentZoom = getZoom() || 1;
       let moved = false;
 
       const onPointerMove = (ev: PointerEvent) => {
@@ -64,7 +65,7 @@ export default function CanvasNode({
       window.addEventListener('pointermove', onPointerMove);
       window.addEventListener('pointerup', onPointerUp);
     },
-    [node.id, node.position, mode, zoom, onSelect, onMove, onFinishConnect]
+    [node.id, node.position, mode, getZoom, onSelect, onMove, onFinishConnect]
   );
 
   const handleDoubleClick = useCallback(
@@ -83,8 +84,7 @@ export default function CanvasNode({
         'canvas-node' + (selected ? ' selected' : '') + (connecting ? ' connecting' : '')
       }
       style={{
-        left: node.position.x,
-        top: node.position.y,
+        translate: `${node.position.x}px ${node.position.y}px`,
       }}
       onPointerDown={handlePointerDown}
       onDoubleClick={handleDoubleClick}
@@ -117,3 +117,5 @@ export default function CanvasNode({
     </div>
   );
 }
+
+export default memo(CanvasNode);

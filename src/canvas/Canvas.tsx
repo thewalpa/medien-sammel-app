@@ -49,6 +49,45 @@ export default function Canvas({
   } | null>(null);
   const [connectingLine, setConnectingLine] = useState<{ from: Position; to: Position } | null>(null);
 
+  // Always-current viewport, so gesture handlers don't need to close over the
+  // prop (which would rebuild them — and re-subscribe listeners — every frame).
+  const viewportRef = useRef(viewport);
+  useEffect(() => {
+    viewportRef.current = viewport;
+  }, [viewport]);
+
+  // Pointer/wheel events can outpace the display (120Hz+ on recent phones), so
+  // coalesce them into at most one viewport commit per animation frame.
+  const pendingViewport = useRef<Viewport | null>(null);
+  const rafId = useRef<number | null>(null);
+
+  const scheduleViewport = useCallback(
+    (next: Viewport) => {
+      // Update the ref immediately so successive events within the same frame
+      // compound off this value rather than the last committed one.
+      viewportRef.current = next;
+      pendingViewport.current = next;
+      if (rafId.current !== null) return;
+      rafId.current = requestAnimationFrame(() => {
+        rafId.current = null;
+        const vp = pendingViewport.current;
+        pendingViewport.current = null;
+        if (vp) onSetViewport(vp);
+      });
+    },
+    [onSetViewport]
+  );
+
+  useEffect(
+    () => () => {
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+    },
+    []
+  );
+
+  // Read zoom without passing it as a prop, so zooming doesn't invalidate every node
+  const getZoom = useCallback(() => viewportRef.current.zoom, []);
+
   // Wheel zoom
   const handleWheel = useCallback(
     (e: WheelEvent) => {
@@ -58,15 +97,16 @@ export default function Canvas({
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
+      const vp = viewportRef.current;
       const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-      const newZoom = clamp(viewport.zoom * zoomFactor, MIN_ZOOM, MAX_ZOOM);
+      const newZoom = clamp(vp.zoom * zoomFactor, MIN_ZOOM, MAX_ZOOM);
 
-      const newX = mouseX - (mouseX - viewport.x) * (newZoom / viewport.zoom);
-      const newY = mouseY - (mouseY - viewport.y) * (newZoom / viewport.zoom);
+      const newX = mouseX - (mouseX - vp.x) * (newZoom / vp.zoom);
+      const newY = mouseY - (mouseY - vp.y) * (newZoom / vp.zoom);
 
-      onSetViewport({ x: newX, y: newY, zoom: newZoom });
+      scheduleViewport({ x: newX, y: newY, zoom: newZoom });
     },
-    [viewport, onSetViewport]
+    [scheduleViewport]
   );
 
   useEffect(() => {
@@ -95,13 +135,13 @@ export default function Canvas({
 
       const startX = e.clientX;
       const startY = e.clientY;
-      const startVP = { ...viewport };
+      const startVP = { ...viewportRef.current };
       containerRef.current.classList.add('grabbing');
 
       const onMove = (ev: PointerEvent) => {
         // Handle single-pointer pan
         if (ev.pointerId !== e.pointerId) return;
-        onSetViewport({
+        scheduleViewport({
           x: startVP.x + (ev.clientX - startX),
           y: startVP.y + (ev.clientY - startY),
           zoom: startVP.zoom,
@@ -117,7 +157,7 @@ export default function Canvas({
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
     },
-    [viewport, onSetViewport, onClearSelection, mode, onFinishConnect]
+    [scheduleViewport, onClearSelection, mode, onFinishConnect]
   );
 
   // Touch pinch-to-zoom
@@ -127,15 +167,16 @@ export default function Canvas({
         e.preventDefault();
         const t1 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         const t2 = { x: e.touches[1].clientX, y: e.touches[1].clientY };
+        const vp = viewportRef.current;
         pinchRef.current = {
           startDist: getDistance(t1, t2),
-          startZoom: viewport.zoom,
+          startZoom: vp.zoom,
           startMid: getMidpoint(t1, t2),
-          startVP: { ...viewport },
+          startVP: { ...vp },
         };
       }
     },
-    [viewport]
+    []
   );
 
   const handleTouchMove = useCallback(
@@ -162,10 +203,10 @@ export default function Canvas({
           (midY - pinchRef.current.startVP.y) * (newZoom / pinchRef.current.startZoom) +
           (curMid.y - pinchRef.current.startMid.y);
 
-        onSetViewport({ x: newX, y: newY, zoom: newZoom });
+        scheduleViewport({ x: newX, y: newY, zoom: newZoom });
       }
     },
-    [onSetViewport]
+    [scheduleViewport]
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -242,7 +283,7 @@ export default function Canvas({
             selected={selectedNodeId === node.id}
             connecting={connectingFromId === node.id}
             mode={mode}
-            zoom={viewport.zoom}
+            getZoom={getZoom}
             onSelect={onSelectNode}
             onMove={handleNodeMove}
             onStartConnect={onStartConnect}
