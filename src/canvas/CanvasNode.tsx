@@ -1,4 +1,4 @@
-import React, { useCallback, useState, memo } from 'react';
+import React, { useCallback, useState, useEffect, memo } from 'react';
 import type { Node, Position, AppMode } from '../types';
 import { MEDIA_TYPE_EMOJI } from '../data/themes';
 
@@ -27,6 +27,10 @@ function CanvasNode({
   onFinishConnect,
 }: CanvasNodeProps) {
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [node.imageUrl]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {

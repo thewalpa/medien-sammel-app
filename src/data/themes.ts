@@ -150,6 +150,10 @@ export const ANIMATED_BACKGROUNDS: AnimatedBackground[] = [
   },
 ];
 
+export const MEDIA_TYPES = ['book', 'music', 'art', 'movie', 'quote', 'fashion', 'ad'] as const;
+export const ENTITY_TYPES = ['person', 'place'] as const;
+export const ALL_TYPES = [...MEDIA_TYPES, ...ENTITY_TYPES] as const;
+
 export const MEDIA_TYPE_EMOJI: Record<string, string> = {
   movie: '🎬',
   music: '🎵',
@@ -161,6 +165,7 @@ export const MEDIA_TYPE_EMOJI: Record<string, string> = {
   person: '👤',
   place: '📍',
 };
+
 export const MEDIA_TYPE_LABELS: Record<string, string> = {
   movie: 'Movies & Series',
   music: 'Music',
@@ -172,5 +177,17 @@ export const MEDIA_TYPE_LABELS: Record<string, string> = {
   person: 'Person',
   place: 'Place',
 };
+
+export const SOURCE_LABELS: Record<string, string> = {
+  openlibrary: 'Open Library',
+  musicbrainz: 'MusicBrainz',
+  tmdb: 'The Movie Database',
+  metmuseum: 'Met Museum',
+  quotes: 'Quotes',
+  vamuseum: 'V&A Museum',
+  wikipedia: 'Wikipedia',
+  manual: 'Custom',
+};
+
 export const DEFAULT_THEME_ID = 'cozy-dark';
 export const DEFAULT_BG_ID = 'aurora';

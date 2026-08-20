@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MEDIA_TYPE_EMOJI, MEDIA_TYPE_LABELS } from '../data/themes';
+import {
+  MEDIA_TYPES,
+  ENTITY_TYPES,
+  MEDIA_TYPE_EMOJI,
+  MEDIA_TYPE_LABELS,
+} from '../data/themes';
 import { hasTmdbKey } from '../services/tmdb';
 import type { Node } from '../types';
 import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
-
-const MEDIA_TYPES = ['book', 'music', 'art', 'movie', 'quote', 'fashion', 'ad'];
-const ENTITY_TYPES = ['person', 'place'];
-const ALL_TYPES = [...MEDIA_TYPES, ...ENTITY_TYPES];
+import { SearchBar } from './SearchBar';
 
 const PLACEHOLDER_YEAR = new Date().getFullYear().toString();
 
@@ -125,27 +127,13 @@ export default function MediaSearchModal({
           </div>
         </div>
 
-        {/* Search input */}
-        <div className="search-input-wrap">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
+        {/* Search input using shared SearchBar */}
+        <div style={{ padding: 'var(--space-lg)' }}>
+          <SearchBar
             ref={inputRef}
-            className="search-input"
-            type="text"
             placeholder={'Search ' + MEDIA_TYPE_LABELS[mediaType] + '...'}
             value={query}
-            onChange={(e) => search(e.target.value, mediaType)}
+            onChange={(val) => search(val, mediaType)}
             id="search-input"
           />
         </div>
