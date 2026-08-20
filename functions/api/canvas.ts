@@ -112,7 +112,7 @@ function readRow(env: Env, id: string): Promise<CanvasRow | null> {
     .first<CanvasRow>();
 }
 
-export const onRequestGet = async ({ request, env }: RequestContext): Promise<Response> => {
+const handleGet = async ({ request, env }: RequestContext): Promise<Response> => {
   const id = await authenticate(request, env);
   if (!id) return json({ error: 'unauthorized' }, 401);
 
@@ -127,7 +127,7 @@ export const onRequestGet = async ({ request, env }: RequestContext): Promise<Re
   return json({ doc: JSON.parse(row.doc), version: row.version, updatedAt: row.updated_at });
 };
 
-export const onRequestPut = async ({ request, env }: RequestContext): Promise<Response> => {
+const handlePut = async ({ request, env }: RequestContext): Promise<Response> => {
   const id = await authenticate(request, env);
   if (!id) return json({ error: 'unauthorized' }, 401);
 
@@ -196,3 +196,44 @@ export const onRequestPut = async ({ request, env }: RequestContext): Promise<Re
     409
   );
 };
+
+/**
+ * Without this, any throw surfaces as a bare Cloudflare 1101 "Worker threw
+ * exception" page with no detail, which is close to undebuggable from the
+ * client. A missing D1 binding is called out specifically because it is by far
+ * the most common cause: bindings only take effect on a deployment made *after*
+ * they were added, and they must exist for both Production and Preview.
+ *
+ * The underlying message is echoed to the caller. That is a deliberate trade
+ * for a small private deployment — tighten it to a generic string if this ever
+ * faces a wider audience.
+ */
+function guarded(
+  handler: (ctx: RequestContext) => Promise<Response>
+): (ctx: RequestContext) => Promise<Response> {
+  return async (ctx) => {
+    if (!ctx.env || !ctx.env.DB) {
+      console.error('sync: D1 binding "DB" is missing');
+      return json(
+        {
+          error: 'misconfigured',
+          detail:
+            'D1 binding "DB" is not attached to this deployment. Add it under ' +
+            'Settings -> Bindings for both Production and Preview, then redeploy.',
+        },
+        500
+      );
+    }
+    try {
+      return await handler(ctx);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      // Surfaces in the dashboard's real-time logs and in `wrangler pages deployment tail`.
+      console.error('sync error:', detail);
+      return json({ error: 'server_error', detail }, 500);
+    }
+  };
+}
+
+export const onRequestGet = guarded(handleGet);
+export const onRequestPut = guarded(handlePut);
