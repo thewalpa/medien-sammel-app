@@ -2,6 +2,9 @@ import React from 'react';
 import type { Edge, Position } from '../types';
 import { getEdgePath } from './canvasUtils';
 
+/** Distance in canvas px from the edge stroke to the centre of the label */
+const LABEL_OFFSET = 12;
+
 interface CanvasEdgeProps {
   edge: Edge;
   fromPos: Position;
@@ -11,7 +14,20 @@ interface CanvasEdgeProps {
 }
 
 export default function CanvasEdge({ edge, fromPos, toPos, selected, onSelect }: CanvasEdgeProps) {
-  const { path } = getEdgePath(fromPos, toPos);
+  const { path, midpoint, normal } = getEdgePath(fromPos, toPos);
+  const hasNote = Boolean(edge.note && edge.note.trim());
+
+  // Nudge the label off the stroke, perpendicular to the edge so it clears the
+  // line at any angle rather than only on horizontal edges.
+  const labelPos = {
+    x: midpoint.x + normal.x * LABEL_OFFSET,
+    y: midpoint.y + normal.y * LABEL_OFFSET,
+  };
+
+  const handleSelect = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect?.(edge.id);
+  };
 
   return (
     <g>
@@ -22,36 +38,25 @@ export default function CanvasEdge({ edge, fromPos, toPos, selected, onSelect }:
         stroke="transparent"
         strokeWidth={16}
         style={{ cursor: 'pointer', pointerEvents: 'stroke' }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect?.(edge.id);
-        }}
+        onClick={handleSelect}
       />
       <path
         d={path}
-        className={'edge-path' + (selected ? ' selected' : '')}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect?.(edge.id);
-        }}
+        className={'edge-path' + (selected ? ' selected' : '') + (hasNote ? ' has-note' : '')}
+        onClick={handleSelect}
       />
-      {edge.label &&
-        (() => {
-          const { midpoint } = getEdgePath(fromPos, toPos);
-          return (
-            <text
-              x={midpoint.x}
-              y={midpoint.y - 8}
-              textAnchor="middle"
-              fontSize={10}
-              fill="var(--text-secondary)"
-              fontFamily="var(--font-family)"
-              style={{ pointerEvents: 'none' }}
-            >
-              {edge.label}
-            </text>
-          );
-        })()}
+      {edge.label && (
+        <text
+          className="edge-label"
+          x={labelPos.x}
+          y={labelPos.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{ pointerEvents: 'none' }}
+        >
+          {edge.label}
+        </text>
+      )}
     </g>
   );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Edge, Node } from '../types';
 import { MEDIA_TYPE_EMOJI } from '../data/themes';
 import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
@@ -9,6 +9,7 @@ interface EdgeDetailModalProps {
   targetNode: Node | null;
   onClose: () => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<Edge>) => void;
 }
 
 const NodeMiniPreview = ({ node }: { node: Node }) => {
@@ -26,20 +27,66 @@ const NodeMiniPreview = ({ node }: { node: Node }) => {
   );
 };
 
+function formatNoteDate(iso: string | undefined) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 export default function EdgeDetailModal({
   edge,
   sourceNode,
   targetNode,
   onClose,
   onDelete,
+  onUpdate,
 }: EdgeDetailModalProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editLabel, setEditLabel] = useState('');
+  const [editNote, setEditNote] = useState('');
+
   const { ref, handlers } = useSwipeToDismiss<HTMLDivElement>({
     direction: 'down',
     threshold: 60,
     onDismiss: onClose,
   });
 
+  useEffect(() => {
+    if (edge) {
+      setEditLabel(edge.label || '');
+      setEditNote(edge.note || '');
+      setIsEditing(false);
+    }
+  }, [edge?.id]);
+
   if (!edge || !sourceNode || !targetNode) return null;
+
+  const handleSave = () => {
+    const label = editLabel.trim();
+    const note = editNote.trim();
+    const noteChanged = note !== (edge.note || '').trim();
+
+    onUpdate(edge.id, {
+      label,
+      note,
+      // Only bump the timestamp when the note text itself changed
+      noteUpdatedAt: noteChanged
+        ? note
+          ? new Date().toISOString()
+          : undefined
+        : edge.noteUpdatedAt,
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditLabel(edge.label || '');
+    setEditNote(edge.note || '');
+    setIsEditing(false);
+  };
+
+  const note = (edge.note || '').trim();
 
   return (
     <div ref={ref} className="detail-panel edge-detail" id="edge-detail-panel" {...handlers}>
@@ -72,18 +119,84 @@ export default function EdgeDetailModal({
           <NodeMiniPreview node={targetNode} />
         </div>
 
-        <div className="detail-panel-actions">
-          <button
-            className="btn btn-danger btn-block"
-            onClick={() => {
-              onDelete(edge.id);
-              onClose();
-            }}
-            id="edge-detail-delete"
-          >
-            🗑 Delete Connection
-          </button>
-        </div>
+        {isEditing ? (
+          <div className="edge-detail-note-form">
+            <div>
+              <label className="label" htmlFor="edge-edit-label">
+                Label
+              </label>
+              <input
+                id="edge-edit-label"
+                className="input"
+                value={editLabel}
+                onChange={(e) => setEditLabel(e.target.value)}
+                placeholder="Short label (e.g. inspired by)"
+                maxLength={40}
+              />
+            </div>
+
+            <div>
+              <label className="label" htmlFor="edge-edit-note">
+                Note
+              </label>
+              <textarea
+                id="edge-edit-note"
+                className="input edge-detail-note-input"
+                value={editNote}
+                onChange={(e) => setEditNote(e.target.value)}
+                placeholder="Why are these connected? Add your thoughts…"
+                rows={5}
+              />
+            </div>
+
+            <div className="detail-panel-actions">
+              <button className="btn btn-primary" onClick={handleSave} id="edge-note-save">
+                Save
+              </button>
+              <button className="btn btn-secondary" onClick={handleCancel} id="edge-note-cancel">
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="edge-detail-note-section">
+              <div className="edge-detail-note-heading">
+                <span className="edge-detail-note-title">Note</span>
+                {edge.noteUpdatedAt && note && (
+                  <span className="edge-detail-note-date">{formatNoteDate(edge.noteUpdatedAt)}</span>
+                )}
+              </div>
+              {note ? (
+                <p className="edge-detail-note-body">{note}</p>
+              ) : (
+                <p className="edge-detail-note-empty">
+                  No note yet — jot down what links these two.
+                </p>
+              )}
+            </div>
+
+            <div className="detail-panel-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setIsEditing(true)}
+                id="edge-note-edit"
+              >
+                {note ? '✏️ Edit Note' : '➕ Add Note'}
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => {
+                  onDelete(edge.id);
+                  onClose();
+                }}
+                id="edge-detail-delete"
+              >
+                🗑 Delete
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

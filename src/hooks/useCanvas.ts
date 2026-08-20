@@ -21,6 +21,7 @@ type CanvasAction =
   | { type: 'UPDATE_NODE'; payload: { id: string; updates: Partial<Node> } }
   | { type: 'DELETE_NODE'; payload: string }
   | { type: 'ADD_EDGE'; payload: { source: string; target: string; label?: string } }
+  | { type: 'UPDATE_EDGE'; payload: { id: string; updates: Partial<Edge> } }
   | { type: 'DELETE_EDGE'; payload: string }
   | { type: 'SET_VIEWPORT'; payload: Viewport }
   | { type: 'SELECT_NODE'; payload: string | null }
@@ -91,10 +92,18 @@ function canvasReducer(state: CanvasState, action: CanvasAction): CanvasState {
             source: action.payload.source,
             target: action.payload.target,
             label: action.payload.label || '',
+            note: '',
           },
         ],
       };
     }
+    case 'UPDATE_EDGE':
+      return {
+        ...state,
+        edges: state.edges.map((e) =>
+          e.id === action.payload.id ? { ...e, ...action.payload.updates } : e
+        ),
+      };
     case 'DELETE_EDGE':
       return { ...state, edges: state.edges.filter((e) => e.id !== action.payload) };
     case 'SET_VIEWPORT':
@@ -147,6 +156,10 @@ export function useCanvas() {
       dispatch({ type: 'ADD_EDGE', payload: { source, target, label } }),
     []
   );
+  const updateEdge = useCallback(
+    (id: string, updates: Partial<Edge>) => dispatch({ type: 'UPDATE_EDGE', payload: { id, updates } }),
+    []
+  );
   const deleteEdge = useCallback((id: string) => dispatch({ type: 'DELETE_EDGE', payload: id }), []);
   const setViewport = useCallback(
     (viewport: Viewport) => dispatch({ type: 'SET_VIEWPORT', payload: viewport }),
@@ -173,6 +186,7 @@ export function useCanvas() {
     reorganizeNodes,
     deleteNode,
     addEdge,
+    updateEdge,
     deleteEdge,
     setViewport,
     selectNode,

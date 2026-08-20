@@ -25,6 +25,8 @@ export interface Edge {
   source: string;
   target: string;
   label: string;
+  note?: string;
+  noteUpdatedAt?: string;
 }
 
 export type AppMode = 'pan' | 'connect';

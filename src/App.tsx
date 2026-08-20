@@ -28,6 +28,7 @@ export default function App() {
     reorganizeNodes,
     deleteNode,
     addEdge,
+    updateEdge,
     deleteEdge,
     setViewport,
     selectNode,
@@ -288,6 +289,7 @@ export default function App() {
           targetNode={edgeNodes.target}
           onClose={() => setSelectedEdgeId(null)}
           onDelete={deleteEdge}
+          onUpdate={updateEdge}
         />
       )}
 

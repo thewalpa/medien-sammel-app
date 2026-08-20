@@ -17,6 +17,8 @@ export function canvasToScreen(canvasPoint: Position, viewport: Viewport): Posit
 interface EdgePathResult {
   path: string;
   midpoint: Position;
+  /** Unit vector perpendicular to the edge, pointing to the curve's convex side */
+  normal: Position;
 }
 
 export function getEdgePath(
@@ -34,8 +36,10 @@ export function getEdgePath(
   const mx = (fromCenter.x + toCenter.x) / 2;
   const my = (fromCenter.y + toCenter.y) / 2;
   // perpendicular offset for curve
-  const nx = (-dy / (dist || 1)) * curvature;
-  const ny = (dx / (dist || 1)) * curvature;
+  const unitNx = -dy / (dist || 1);
+  const unitNy = dx / (dist || 1);
+  const nx = unitNx * curvature;
+  const ny = unitNy * curvature;
   return {
     path:
       'M ' +
@@ -51,6 +55,7 @@ export function getEdgePath(
       ' ' +
       toCenter.y,
     midpoint: { x: mx + nx * 0.5, y: my + ny * 0.5 },
+    normal: { x: unitNx, y: unitNy },
   };
 }
 
