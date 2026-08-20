@@ -11,6 +11,8 @@ import { useMediaSearch } from '../hooks/useMediaSearch';
 import { hasTmdbKey } from '../services/tmdb';
 import { SearchBar } from './SearchBar';
 import { compressImageFile } from '../utils/imageHelper';
+import { putImage, isLocalImageRef } from '../services/imageStore';
+import { useLocalImage } from '../hooks/useLocalImage';
 
 interface NodeDetailPanelProps {
   node: Node | null;
@@ -67,9 +69,17 @@ export default function NodeDetailPanel({
     }
   }, [node, clearSearch]);
 
+  // Resolved before the early return so the hook order stays stable when the
+  // panel closes. Both accept remote URLs and pre-existing data URLs unchanged.
+  const { src: imageSrc } = useLocalImage(node?.imageUrl);
+  const { src: editPreviewSrc } = useLocalImage(editImageUrl);
+
   if (!node) return null;
 
   const emoji = MEDIA_TYPE_EMOJI[node.type] || '📌';
+  /* A device photo has no URL worth showing or editing — older canvases stored
+     one inline as a data URL, newer ones as a `local:` reference. */
+  const isDevicePhoto = isLocalImageRef(editImageUrl) || editImageUrl.startsWith('data:');
 
   const handleStartEdit = () => {
     setIsEditing(true);
@@ -105,8 +115,11 @@ export default function NodeDetailPanel({
     if (!file) return;
 
     try {
-      const dataUrl = await compressImageFile(file, 900, 0.82);
-      setEditImageUrl(dataUrl);
+      const blob = await compressImageFile(file, 900, 0.82);
+      // Only the reference goes on the node; the bytes stay in IndexedDB so the
+      // synced document does not carry them.
+      const ref = await putImage(blob);
+      setEditImageUrl(ref);
       setFilledNotice('Photo loaded from device');
     } catch (err: any) {
       alert(err?.message || 'Failed to process image');
@@ -318,9 +331,9 @@ export default function NodeDetailPanel({
                       }
                     }}
                   >
-                    {editImageUrl ? (
+                    {editPreviewSrc ? (
                       <img
-                        src={editImageUrl}
+                        src={editPreviewSrc}
                         alt="Cover preview"
                         className="detail-image-thumb-img"
                         onError={(e: any) => {
@@ -338,10 +351,10 @@ export default function NodeDetailPanel({
                     <input
                       id="edit-image-url"
                       className="input"
-                      value={editImageUrl.startsWith('data:') ? '📷 Device Photo' : editImageUrl}
+                      value={isDevicePhoto ? '📷 Device Photo' : editImageUrl}
                       onChange={(e) => setEditImageUrl(e.target.value)}
                       placeholder="Image URL (or tap photo to upload)"
-                      readOnly={editImageUrl.startsWith('data:')}
+                      readOnly={isDevicePhoto}
                     />
                     {editImageUrl && (
                       <button
@@ -394,10 +407,10 @@ export default function NodeDetailPanel({
             /* VIEW MODE (Overview) */
             <>
               <div className="detail-panel-header">
-                {node.imageUrl ? (
+                {imageSrc ? (
                   <img
                     className="detail-panel-image clickable"
-                    src={node.imageUrl}
+                    src={imageSrc}
                     alt={node.title}
                     onClick={() => setIsLightboxOpen(true)}
                     title="Tap to view full image"
@@ -468,14 +481,14 @@ export default function NodeDetailPanel({
       </div>
 
       {/* Lightbox / Fullscreen Image Viewer on Phone/Desktop */}
-      {isLightboxOpen && node.imageUrl && (
+      {isLightboxOpen && imageSrc && (
         <div
           className="image-lightbox-overlay"
           onClick={() => setIsLightboxOpen(false)}
           id="image-lightbox"
         >
           <div className="image-lightbox-content" onClick={(e) => e.stopPropagation()}>
-            <img src={node.imageUrl} alt={node.title} className="image-lightbox-img" />
+            <img src={imageSrc} alt={node.title} className="image-lightbox-img" />
             <button
               className="image-lightbox-close"
               onClick={() => setIsLightboxOpen(false)}

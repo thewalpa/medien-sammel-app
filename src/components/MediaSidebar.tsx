@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { Node } from '../types';
 import { MEDIA_TYPE_EMOJI, MEDIA_TYPE_LABELS } from '../data/themes';
 import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
+import { useLocalImage } from '../hooks/useLocalImage';
 
 interface MediaSidebarProps {
   open: boolean;
@@ -23,13 +24,15 @@ function SidebarItem({
   selected: boolean;
   onFocusNode: (id: string) => void;
 }) {
+  const { src: imageSrc } = useLocalImage(node.imageUrl);
+
   return (
     <div
       className={'sidebar-item' + (selected ? ' selected' : '')}
       onClick={() => onFocusNode(node.id)}
     >
-      {node.imageUrl ? (
-        <img className="sidebar-item-thumb" src={node.imageUrl} alt="" loading="lazy" />
+      {imageSrc ? (
+        <img className="sidebar-item-thumb" src={imageSrc} alt="" loading="lazy" />
       ) : (
         <div className={'sidebar-item-thumb-placeholder ' + node.type}>
           {MEDIA_TYPE_EMOJI[node.type] || '📌'}

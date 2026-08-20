@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect, memo } from 'react';
 import type { Node, Position, AppMode } from '../types';
 import { MEDIA_TYPE_EMOJI } from '../data/themes';
+import { useLocalImage } from '../hooks/useLocalImage';
 
 interface CanvasNodeProps {
   node: Node;
@@ -27,6 +28,9 @@ function CanvasNode({
   onFinishConnect,
 }: CanvasNodeProps) {
   const [imgError, setImgError] = useState(false);
+  // A `local:` reference resolves to an object URL from IndexedDB; remote URLs
+  // pass straight through.
+  const { src: imageSrc } = useLocalImage(node.imageUrl);
 
   useEffect(() => {
     setImgError(false);
@@ -94,10 +98,10 @@ function CanvasNode({
       onDoubleClick={handleDoubleClick}
     >
       <div className="node-card">
-        {node.imageUrl && !imgError ? (
+        {imageSrc && !imgError ? (
           <img
             className="node-image"
-            src={node.imageUrl}
+            src={imageSrc}
             alt={node.title}
             loading="lazy"
             onError={() => setImgError(true)}

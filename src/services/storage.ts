@@ -1,15 +1,23 @@
 import type { CanvasState } from '../types';
+import { collectImagesForExport, restoreImagesFromExport } from './imageStore';
 
 const DB_NAME = 'medien-sammel-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
-function openDB(): Promise<IDBDatabase> {
+/**
+ * Exported so the image store can share one database and one version number —
+ * two modules opening the same name with different versions would deadlock.
+ */
+export function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains('canvas')) db.createObjectStore('canvas');
       if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings');
+      // Uploaded photos, keyed by content hash. Kept out of the `canvas` record
+      // so the synced document stays small — see services/imageStore.ts.
+      if (!db.objectStoreNames.contains('images')) db.createObjectStore('images');
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -73,8 +81,19 @@ export async function loadSettings(): Promise<any> {
 export async function exportCanvasAsJSON(): Promise<void> {
   const canvas = await loadCanvas();
   const settings = await loadSettings();
+  // Nodes reference device photos by key, so the blobs have to travel with the
+  // backup — otherwise restoring on another device silently loses every upload.
+  const images = await collectImagesForExport(
+    (canvas?.nodes || []).map((n: any) => n.imageUrl || '')
+  );
   const blob = new Blob(
-    [JSON.stringify({ canvas, settings, exportedAt: new Date().toISOString() }, null, 2)],
+    [
+      JSON.stringify(
+        { canvas, settings, images, exportedAt: new Date().toISOString() },
+        null,
+        2
+      ),
+    ],
     { type: 'application/json' }
   );
   const url = URL.createObjectURL(blob);
@@ -93,6 +112,8 @@ export async function importCanvasFromJSON(file: File): Promise<any> {
         const text = e.target?.result;
         if (typeof text !== 'string') return reject(new Error('Failed to read file'));
         const data = JSON.parse(text);
+        // Photos first: the canvas is only valid once its references resolve.
+        if (data.images) await restoreImagesFromExport(data.images);
         if (data.canvas) await saveCanvas(data.canvas);
         if (data.settings) await saveSettings(data.settings);
         resolve(data);

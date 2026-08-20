@@ -17,6 +17,7 @@ import { useTheme } from './hooks/useTheme';
 import { useMediaSearch } from './hooks/useMediaSearch';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useSync } from './hooks/useSync';
+import { useImageMigration } from './hooks/useImageMigration';
 import { screenToCanvas } from './canvas/canvasUtils';
 import { applyDecadeClustering, applyRadialDecadeLayout, applySpiralLayout } from './utils/layout';
 import type { LayoutStrategy } from './utils/layout';
@@ -50,6 +51,16 @@ export default function App() {
     edges: state.edges,
     hydrated,
     loadState,
+  });
+
+  // Rewrite pre-IndexedDB inline photos into local references, but only once
+  // sync has settled: 'off' means there is no server to disagree with, and
+  // 'synced' means our copy already matches it, so the rewrite pushes cleanly
+  // as the next version instead of colliding with the initial reconcile.
+  useImageMigration({
+    nodes: state.nodes,
+    ready: hydrated && (sync.status === 'off' || sync.status === 'synced'),
+    updateNode,
   });
 
   const [searchOpen, setSearchOpen] = useState(false);

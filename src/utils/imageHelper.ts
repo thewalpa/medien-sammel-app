@@ -1,12 +1,14 @@
 /**
- * Compresses and resizes an uploaded image file on the client
- * so that it can be stored directly in IndexedDB / state without exhausting memory.
+ * Compresses and resizes an uploaded image file on the client.
+ *
+ * Returns a Blob rather than a data URL: the bytes go into IndexedDB via
+ * services/imageStore, where base64 would inflate them by a third for nothing.
  */
 export async function compressImageFile(
   file: File,
   maxDimension = 900,
   quality = 0.82
-): Promise<string> {
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) {
       return reject(new Error('Selected file is not an image'));
@@ -38,12 +40,17 @@ export async function compressImageFile(
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          return resolve(src);
+          // No 2D context to resize with — keep the original bytes rather than
+          // failing the upload outright.
+          return resolve(file);
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedDataUrl);
+        canvas.toBlob(
+          (blob) => (blob ? resolve(blob) : reject(new Error('Failed to encode image'))),
+          'image/jpeg',
+          quality
+        );
       };
 
       img.onerror = () => reject(new Error('Failed to load image for compression'));
