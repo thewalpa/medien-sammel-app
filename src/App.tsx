@@ -10,11 +10,13 @@ import ThemeCustomizer from './components/ThemeCustomizer';
 import LayoutModal from './components/LayoutModal';
 import OfflineBanner from './components/OfflineBanner';
 import InstallBanner from './components/InstallBanner';
+import SyncConflictBanner from './components/SyncConflictBanner';
 import { useCanvas } from './hooks/useCanvas';
 import { usePersistence } from './hooks/usePersistence';
 import { useTheme } from './hooks/useTheme';
 import { useMediaSearch } from './hooks/useMediaSearch';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
+import { useSync } from './hooks/useSync';
 import { screenToCanvas } from './canvas/canvasUtils';
 import { applyDecadeClustering, applyRadialDecadeLayout, applySpiralLayout } from './utils/layout';
 import type { LayoutStrategy } from './utils/layout';
@@ -42,7 +44,13 @@ export default function App() {
   const theme = useTheme();
   const mediaSearch = useMediaSearch();
   const { canInstall, promptInstall, dismiss } = useInstallPrompt();
-  usePersistence(state, loadState);
+  const { hydrated } = usePersistence(state, loadState);
+  const sync = useSync({
+    nodes: state.nodes,
+    edges: state.edges,
+    hydrated,
+    loadState,
+  });
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -325,6 +333,15 @@ export default function App() {
         onChangeTheme={theme.changeTheme}
         onChangeBg={theme.changeBg}
         onChangeCustomBg={theme.changeCustomBg}
+        sync={sync}
+      />
+
+      <SyncConflictBanner
+        conflict={sync.conflict}
+        localNodeCount={state.nodes.length}
+        localEdgeCount={state.edges.length}
+        onKeepLocal={sync.keepLocal}
+        onUseRemote={sync.useRemote}
       />
 
       <InstallBanner canInstall={canInstall} onInstall={promptInstall} onDismiss={dismiss} />

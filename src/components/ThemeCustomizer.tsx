@@ -3,6 +3,8 @@ import { THEMES, ANIMATED_BACKGROUNDS } from '../data/themes';
 import { getTmdbKey, setTmdbKey } from '../services/tmdb';
 import { exportCanvasAsJSON, importCanvasFromJSON } from '../services/storage';
 import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
+import SyncPanel from './SyncPanel';
+import type { useSync } from '../hooks/useSync';
 
 interface ThemeCustomizerProps {
   open: boolean;
@@ -13,6 +15,7 @@ interface ThemeCustomizerProps {
   onChangeTheme: (id: string) => void;
   onChangeBg: (id: string) => void;
   onChangeCustomBg: (url: string) => void;
+  sync: ReturnType<typeof useSync>;
 }
 
 export default function ThemeCustomizer({
@@ -24,6 +27,7 @@ export default function ThemeCustomizer({
   onChangeTheme,
   onChangeBg,
   onChangeCustomBg,
+  sync,
 }: ThemeCustomizerProps) {
   const [tmdbKey, setTmdbKeyLocal] = useState(getTmdbKey());
   const [importMsg, setImportMsg] = useState('');
@@ -208,6 +212,15 @@ export default function ThemeCustomizer({
               </div>
             )}
           </div>
+
+          <SyncPanel
+            code={sync.code}
+            status={sync.status}
+            lastSyncedAt={sync.lastSyncedAt}
+            onConnect={sync.connect}
+            onDisconnect={sync.disconnect}
+            onSyncNow={sync.syncNow}
+          />
 
           <div
             style={{

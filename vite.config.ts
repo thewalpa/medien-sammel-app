@@ -37,6 +37,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Never let the service worker answer /api/* from cache — sync must
+        // always hit the network, and a cached response here means stale writes.
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
